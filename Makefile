@@ -40,7 +40,9 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib/ddns
+	$(INSTALL_DIR) $(1)/usr/share/ddns/default
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/update_dnspod_cn.sh $(1)/usr/lib/ddns
+	$(INSTALL_DATA) ./dnspod.cn.json $(1)/usr/share/ddns/default
 endef
 
 define Package/$(PKG_NAME)/postinst
@@ -49,8 +51,13 @@ define Package/$(PKG_NAME)/postinst
 	/bin/sed -i '/dnspod\.cn/d' $${IPKG_INSTROOT}/etc/ddns/services >/dev/null 2>&1
 	/bin/sed -i '/dnspod\.cn/d' $${IPKG_INSTROOT}/etc/ddns/services_ipv6 >/dev/null 2>&1
 	# and create new
-	printf "%s\\t\\t%s\\n" '"dnspod.cn"' '"update_dnspod_cn.sh"' >> $${IPKG_INSTROOT}/etc/ddns/services
-	printf "%s\\t\\t%s\\n" '"dnspod.cn"' '"update_dnspod_cn.sh"' >> $${IPKG_INSTROOT}/etc/ddns/services_ipv6
+	#printf "%s\\t\\t%s\\n" '"dnspod.cn"' '"update_dnspod_cn.sh"' >> $${IPKG_INSTROOT}/etc/ddns/services
+	#printf "%s\\t\\t%s\\n" '"dnspod.cn"' '"update_dnspod_cn.sh"' >> $${IPKG_INSTROOT}/etc/ddns/services_ipv6
+
+	# support new ddns-services version
+	/bin/sed -i '/dnspod\.cn/d' $${IPKG_INSTROOT}/usr/share/ddns/list >/dev/null 2>&1
+	printf "%s" 'dnspod.cn' >> $${IPKG_INSTROOT}/usr/share/ddns/list
+
 	# on real system restart service if enabled
 	[ -z "$${IPKG_INSTROOT}" ] && {
 		/etc/init.d/ddns enabled && \
@@ -64,8 +71,9 @@ define Package/$(PKG_NAME)/prerm
 	# if NOT run buildroot then stop service
 	[ -z "$${IPKG_INSTROOT}" ] && /etc/init.d/ddns stop >/dev/null 2>&1
 	# remove services file entries
-	/bin/sed -i '/dnspod\.cn/d' $${IPKG_INSTROOT}/etc/ddns/services >/dev/null 2>&1
-	/bin/sed -i '/dnspod\.cn/d' $${IPKG_INSTROOT}/etc/ddns/services_ipv6 >/dev/null 2>&1
+	#/bin/sed -i '/dnspod\.cn/d' $${IPKG_INSTROOT}/etc/ddns/services >/dev/null 2>&1
+	#/bin/sed -i '/dnspod\.cn/d' $${IPKG_INSTROOT}/etc/ddns/services_ipv6 >/dev/null 2>&1
+	/bin/sed -i '/dnspod\.cn/d' $${IPKG_INSTROOT}/usr/share/ddns/list >dev/null 2>&1
 	exit 0 # suppress errors
 endef
 
